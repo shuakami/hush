@@ -38,11 +38,35 @@
       <span class="sep">·</span>
       <a href="#install">Install</a>
       <span class="sep">·</span>
-      <a href="#start">Five-minute start</a>
+      <a href="#start">Quick start</a>
       <span class="sep">·</span>
       <a href="#agents">For agents</a>
     </p>
   </header>
+
+  <section id="start">
+    <h2>Sixty seconds</h2>
+    <p>
+      There is no cloud, no account, no SSO. Hush is a binary that runs on your machine (or your VPS) and listens on a local port. <code>hush bootstrap</code> mints an admin API key and writes it into <code>~/.hush/config</code>, so the CLI on the same machine works immediately — there is no separate "log in" step.
+    </p>
+<pre><code><span class="cmt"># 1. master key — never written to disk by hush</span>
+$ <span class="kw">export</span> HUSH_MASTER_KEY=$(openssl rand -base64 32)
+
+<span class="cmt"># 2. mint admin token + write ~/.hush/config; start the broker</span>
+$ hush bootstrap
+$ hush server &
+
+<span class="cmt"># 3. attach a password to a name, then run a command</span>
+$ <span class="kw">echo</span> <span class="s">'super-secret-root-password'</span> | hush secret set hk1-pw --stdin
+$ hush host add hk1 \
+    --transport ssh --address 10.0.0.10 --user root \
+    --auth-kind password --auth-secret hk1-pw
+
+$ hush exec hk1 -- <span class="s">"systemctl status nginx"</span></code></pre>
+    <p>
+      Bootstrapping a broker for a CLI that lives on a different machine? Pass <code>hush bootstrap --no-save</code>; the key is printed on stdout and you can drop it into <code>~/.hush/config</code> on the other side with <code>hush login --endpoint … --api-key …</code>.
+    </p>
+  </section>
 
   <section>
     <h2>The problem</h2>
@@ -142,35 +166,19 @@ host_exec({ host: <span class="s">"hk1"</span>, cmd: <span class="s">"systemctl 
     </p>
   </section>
 
-  <section id="start">
-    <h2>Five minutes from clone to first exec</h2>
+  <section>
+    <h2>The daily-driver loop</h2>
     <p>
-      Hush is a single binary plus a vault file plus a config. The flow below is the entire daily-driver loop.
+      Once the broker is running and the config is in place, the rest of the surface is small. These are the verbs you reach for every day.
     </p>
-<pre><code><span class="cmt"># 1. pick a master key. it is never written to disk by hush.</span>
-$ <span class="kw">export</span> HUSH_MASTER_KEY=$(openssl rand -base64 32)
-
-<span class="cmt"># 2. start the broker. one process, one port.</span>
-$ hush bootstrap          <span class="cmt"># mints admin token (printed once)</span>
-$ hush server &           <span class="cmt"># listens on 127.0.0.1:8443</span>
-
-<span class="cmt"># 3. log the cli in. writes ~/.hush/config at mode 0600.</span>
-$ hush login --endpoint http://127.0.0.1:8443 --api-key hk_live_…
-
-<span class="cmt"># 4. push a credential into the vault and attach it to a name.</span>
-$ <span class="kw">echo</span> <span class="s">'super-secret-root-password'</span> | hush secret set hk1-root-password --stdin
-$ hush host add hk1 \
-    --transport ssh --address 10.0.0.10 --port 22 --user root \
-    --auth-kind password --auth-secret hk1-root-password --tag prod
-
-<span class="cmt"># 5. use it.</span>
-$ hush exec hk1 -- <span class="s">"systemctl status nginx"</span>
-$ hush exec --tag prod -- <span class="s">"uptime"</span>
-$ hush cp ./build.tar.gz hk1:/opt/app/build.tar.gz
-$ hush ssh hk1
-$ hush audit verify</code></pre>
+<pre><code>$ hush exec hk1 -- <span class="s">"systemctl status nginx"</span>     <span class="cmt"># one host, one command</span>
+$ hush exec --tag prod -- <span class="s">"uptime"</span>              <span class="cmt"># every prod host, in parallel</span>
+$ hush cp ./build.tar.gz hk1:/opt/app/build.tar.gz <span class="cmt"># upload</span>
+$ hush ssh hk1                                     <span class="cmt"># interactive shell, for humans</span>
+$ hush audit tail --follow                         <span class="cmt"># live broker activity</span>
+$ hush audit verify                                <span class="cmt"># confirm the audit chain is intact</span></code></pre>
     <p>
-      The <code>~/.hush/config</code> file is portable — copy it to a CI runner or another laptop, set <code>HUSH_MASTER_KEY</code>, and the same commands work.
+      The <code>~/.hush/config</code> file is portable — copy it to a CI runner or another laptop, set <code>HUSH_MASTER_KEY</code>, and the same commands work. CI jobs can also pass <code>HUSH_ENDPOINT</code> and <code>HUSH_API_KEY</code> directly without a config file.
     </p>
   </section>
 

@@ -115,6 +115,15 @@ func bootstrapIfNeeded(ctx context.Context, akm *apikey.Manager, alog *audit.Log
 	}
 	_, _ = alog.Append(ctx, "bootstrap", "apikey.bootstrap", k.Name, map[string]interface{}{"id": k.ID})
 
+	endpoint := clientEndpointFromListen(cfg.Listen)
+	saved := false
+	if !truthy(os.Getenv("HUSH_NO_SAVE_CONFIG")) {
+		ccfg := &config.ClientConfig{Endpoint: endpoint, APIKey: raw}
+		if err := config.SaveClient(ccfg); err == nil {
+			saved = true
+		}
+	}
+
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "════════════════════════════════════════════════════════════════")
 	fmt.Fprintln(os.Stderr, " hush bootstrap ─ no api keys existed; minted an admin key")
@@ -122,8 +131,12 @@ func bootstrapIfNeeded(ctx context.Context, akm *apikey.Manager, alog *audit.Log
 	fmt.Fprintln(os.Stderr, "")
 	fmt.Fprintln(os.Stderr, "    "+raw)
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, " then on the client run:")
-	fmt.Fprintln(os.Stderr, "    hush login --endpoint http://"+cfg.Listen+" --api-key "+raw)
+	if saved {
+		fmt.Fprintln(os.Stderr, " saved client config to ~/.hush/config — `hush exec ...` works.")
+	} else {
+		fmt.Fprintln(os.Stderr, " on the client run (or copy the key into ~/.hush/config):")
+		fmt.Fprintln(os.Stderr, "    hush login --endpoint "+endpoint+" --api-key "+raw)
+	}
 	fmt.Fprintln(os.Stderr, "════════════════════════════════════════════════════════════════")
 	return nil
 }

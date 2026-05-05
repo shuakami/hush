@@ -38,7 +38,7 @@ hush audit tail [-n 50]                 inspect recent broker activity
 hush audit verify                       confirm the audit chain has not been mutated
 ```
 
-Every command honours `HUSH_ENDPOINT` and `HUSH_API_KEY` env vars; if either is missing, the agent should run `hush login` and follow its prompts, **not** ask the user for the password.
+Every command honours `HUSH_ENDPOINT` and `HUSH_API_KEY` env vars. On a fresh box, run `hush bootstrap`: it mints an admin API key and writes `~/.hush/config` automatically, so the next `hush exec` Just Works. Do **not** ask the user for the host password.
 
 ## Common patterns
 
@@ -94,7 +94,7 @@ The shim accepts the same `SSHClient` / `SFTPClient` API surface, so call-site c
 | Symptom                                         | What it means                                                | What the agent should do                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
 | `host "X" not found`                            | The name is not registered.                                  | Run `hush host ls`, ask the user.               |
-| `endpoint not set` / `api key not set`          | `~/.hush/config` is missing or `HUSH_ENDPOINT` not exported. | Run `hush login`; do not prompt for passwords.  |
+| `endpoint not set` / `api key not set`          | `~/.hush/config` is missing or `HUSH_ENDPOINT` not exported. | Run `hush bootstrap`; do not prompt for passwords. |
 | `connect: i/o timeout` / `permission denied`    | The transport is down or the credential is stale.            | Tell the user; do not retry > 3 times.          |
 | `audit verify: chain broken at record N`        | Audit log was mutated after the fact.                        | **Stop.** Surface to the user immediately.      |
 | `exec returned non-zero`                        | The remote command failed.                                   | Re-emit stderr to the user, propose next step.  |

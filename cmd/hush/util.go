@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -68,6 +69,22 @@ func truthy(s string) bool {
 		return true
 	}
 	return false
+}
+
+// clientEndpointFromListen converts a server "listen" address (e.g.
+// "0.0.0.0:8443", ":8443", "[::]:8443") into a usable client endpoint URL
+// rooted at localhost. The server may listen on a wildcard, but a CLI on
+// the same machine still has to dial 127.0.0.1.
+func clientEndpointFromListen(listen string) string {
+	host, port, err := net.SplitHostPort(listen)
+	if err != nil {
+		return "http://" + listen
+	}
+	switch host {
+	case "", "0.0.0.0", "::", "[::]":
+		host = "127.0.0.1"
+	}
+	return "http://" + net.JoinHostPort(host, port)
 }
 
 // errorMsg unwraps an *clientlib.ErrAPI to its message, or stringifies err.

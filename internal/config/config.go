@@ -78,10 +78,10 @@ func LoadClient() *ClientConfig {
 // for commands that don't need it (e.g. `hush login`).
 func (c *ClientConfig) Validate(needsAuth bool) error {
 	if c.Endpoint == "" {
-		return errors.New("endpoint not set; run `hush login` or set HUSH_ENDPOINT")
+		return errors.New("endpoint not set; run `hush bootstrap` (writes ~/.hush/config) or set HUSH_ENDPOINT")
 	}
 	if needsAuth && c.APIKey == "" {
-		return errors.New("api key not set; run `hush login` or set HUSH_API_KEY")
+		return errors.New("api key not set; run `hush bootstrap` (writes ~/.hush/config) or set HUSH_API_KEY")
 	}
 	return nil
 }

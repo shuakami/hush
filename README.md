@@ -72,7 +72,7 @@ pip install git+https://github.com/shuakami/hush.git#subdirectory=sdk/python
 
 ## Getting started
 
-The first run takes about five minutes: pick a master key, start the broker, log the CLI in, register a host, run a command. After that, everything is `hush exec`, `hush cp`, or one import line in your Python.
+The first run takes about a minute: pick a master key, start the broker, register a host, run a command. After that, everything is `hush exec`, `hush cp`, or one import line in your Python.
 
 ### 1. Pick a master key
 
@@ -87,21 +87,15 @@ If you prefer a file on disk, set `HUSH_KEK_KIND=file` and `HUSH_KEK_FILE=/etc/h
 ### 2. Start the broker
 
 ```bash
-hush bootstrap        # one-shot: creates ~/.hush/data/, mints an admin API key, prints it
+hush bootstrap        # mints admin api key + writes ~/.hush/config
 hush server           # daemonise this (systemd, docker, tmux — your call)
 ```
 
-`bootstrap` prints something like `hk_live_b9f2…` on stdout. Copy it now; the plaintext is shown exactly once. The broker listens on `127.0.0.1:8443` by default; expose it elsewhere with `HUSH_LISTEN`.
+`bootstrap` mints an admin API key and writes both the local endpoint (`http://127.0.0.1:8443`) and the key into `~/.hush/config` at mode `0600`. The CLI on this machine is now ready — there is no separate "log in" step, and no cloud account anywhere.
 
-### 3. Log the CLI in
+To bootstrap a server whose CLI lives on a different machine, pass `--no-save`; the key is printed to stdout and you can copy it across with `hush login --endpoint … --api-key …`. If `hush server` starts on a fresh data directory and finds no API keys, it self-bootstraps with the same logic, prints the key on stderr, and writes the config.
 
-```bash
-hush login --endpoint http://127.0.0.1:8443 --api-key hk_live_b9f2…
-```
-
-This writes `~/.hush/config` (mode `0600`). Subsequent commands read it automatically. To use Hush from a different machine, copy that file across or set `HUSH_ENDPOINT` / `HUSH_API_KEY` in the environment.
-
-### 4. Register a host
+### 3. Register a host
 
 ```bash
 echo 'super-secret-root-password' | hush secret set hk1-root-password --stdin
@@ -117,7 +111,7 @@ hush host add hk1 \
 
 For a key-based host swap `--auth-kind password --auth-secret …` for `--auth-kind key --auth-secret hk2-private-key`, where `hk2-private-key` is a vault secret containing the PEM blob.
 
-### 5. Use it
+### 4. Use it
 
 ```bash
 hush exec hk1 -- "systemctl status nginx"           # one host, one command
@@ -129,7 +123,7 @@ hush audit verify                                   # confirm the audit chain is
 
 That is the entire daily-driver loop.
 
-### 6. Wire it into a Python script
+### 5. Wire it into a Python script
 
 Pick the form that fits the script:
 
@@ -148,9 +142,9 @@ result = remote.exec("hk1", "systemctl status nginx")
 print(result.exit_code, result.stdout)
 ```
 
-The SDK reads the same `~/.hush/config` the CLI does, so once `hush login` succeeds the script needs no further configuration.
+The SDK reads the same `~/.hush/config` the CLI does, so once `hush bootstrap` has written that file the script needs no further configuration.
 
-### 7. Wire it into an AI agent
+### 6. Wire it into an AI agent
 
 The repo ships with an [Agent Skill](./skills/hush/SKILL.md) — a single directory the agent's runtime can load to learn when and how to call Hush. For Claude Code:
 
