@@ -19,8 +19,6 @@
   <a href="#python-sdk">SDK</a>
 </p>
 
----
-
 Hush is a credential broker. It stores secrets in an encrypted vault and runs commands on remote hosts on the caller's behalf, so Python scripts, CI jobs, AI agents, and humans on the CLI never need to handle raw passwords or keys themselves.
 
 It ships as a single Go binary with no external dependencies. Existing `paramiko`-based scripts can adopt Hush by changing one import; the CLI is shaped after `ssh` and `scp` so muscle memory carries over. Every read, exec, put, and get is appended to a hash-chained audit log that `hush audit verify` can validate end-to-end.
@@ -39,8 +37,6 @@ ssh.connect("hk1")
 ```
 
 The credential lives in the vault; the shim resolves the host name to a transport + auth pair at `connect` time. No other call-site changes are required.
-
----
 
 ## Install
 
