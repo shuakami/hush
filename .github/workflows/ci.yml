@@ -1,0 +1,95 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: gofmt
+        run: |
+          set -e
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then
+            echo "::error::gofmt found unformatted files:"
+            echo "$out"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: build
+        run: go build ./...
+
+      - name: test
+        run: go test -race -count=1 ./...
+
+      - name: smoke test (CLI bootstrap → server → http round-trip)
+        shell: bash
+        run: |
+          set -euo pipefail
+          go build -o /tmp/hush ./cmd/hush
+          export HUSH_DATA_DIR=$RUNNER_TEMP/hush
+          export HUSH_KEK_KIND=file
+          export HUSH_KEK_FILE=$RUNNER_TEMP/kek
+          export HUSH_LISTEN=127.0.0.1:18443
+          mkdir -p "$HUSH_DATA_DIR"
+          TOKEN=$(/tmp/hush bootstrap)
+          echo "minted token: ${TOKEN:0:10}..."
+
+          /tmp/hush server &
+          SERVER_PID=$!
+          for i in {1..20}; do
+            if curl -sf http://127.0.0.1:18443/healthz >/dev/null; then break; fi
+            sleep 0.3
+          done
+
+          curl -sf -H "Authorization: Bearer $TOKEN" \
+            -X PUT -H "Content-Type: application/json" \
+            -d '{"value":"hello"}' \
+            http://127.0.0.1:18443/api/v1/secrets/test
+
+          val=$(curl -sf -H "Authorization: Bearer $TOKEN" \
+            http://127.0.0.1:18443/api/v1/secrets/test | python3 -c 'import sys,json; print(json.load(sys.stdin)["value"])')
+          test "$val" = "hello"
+
+          ok=$(curl -sf -H "Authorization: Bearer $TOKEN" \
+            http://127.0.0.1:18443/api/v1/audit/verify | python3 -c 'import sys,json; print(json.load(sys.stdin)["ok"])')
+          test "$ok" = "True"
+
+          kill $SERVER_PID
+
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: install
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+      - name: import smoke
+        run: |
+          python -c "import hush; from hush import remote; from hush import paramiko_compat; print('hush', hush.__version__, 'ok')"
+      - name: migrate self-test
+        run: |
+          set -e
+          cat > /tmp/has_secret.py <<'EOF'
+          PASSWORD = "definitelyApassword123"
+          EOF
+          python -m hush.migrate scan /tmp/has_secret.py && echo "expected non-zero exit" && exit 1 || true

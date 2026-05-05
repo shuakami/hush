@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>hush banner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0a0a0a; }
+  body {
+    width: 1600px;
+    height: 360px;
+    position: relative;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+    overflow: hidden;
+  }
+
+  /* corner crosshairs — barely visible structural marks (Linear-ish) */
+  .crosshair { position: absolute; width: 12px; height: 12px; opacity: 0.18; }
+  .crosshair::before, .crosshair::after {
+    content: ""; position: absolute; background: #fafafa;
+  }
+  .crosshair::before { top: 6px; left: 0; right: 0; height: 1px; }
+  .crosshair::after  { left: 6px; top: 0; bottom: 0; width: 1px; }
+  .tl { top: 32px;    left: 32px; }
+  .tr { top: 32px;    right: 32px; }
+  .bl { bottom: 32px; left: 32px; }
+  .br { bottom: 32px; right: 32px; }
+
+  /* meta caption top-left */
+  .meta {
+    position: absolute;
+    top: 36px;
+    left: 60px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: #52525b;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .meta .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    margin-right: 8px;
+    transform: translateY(-1px);
+  }
+
+  /* version pill top-right */
+  .version {
+    position: absolute;
+    top: 36px;
+    right: 60px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: #52525b;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* center stack */
+  .center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .wordmark {
+    font-size: 188px;
+    font-weight: 800;
+    color: #fafafa;
+    letter-spacing: -0.055em;
+    line-height: 1;
+  }
+  .wordmark .stop { color: #a1a1aa; }
+  .tagline {
+    margin-top: 36px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 19px;
+    font-weight: 400;
+    color: #a1a1aa;
+    letter-spacing: -0.005em;
+  }
+  .tagline .em { color: #fafafa; font-weight: 500; }
+
+  /* bottom mono caption */
+  .footer {
+    position: absolute;
+    left: 0; right: 0; bottom: 28px;
+    text-align: center;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: #3f3f46;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <span class="crosshair tl"></span>
+  <span class="crosshair tr"></span>
+  <span class="crosshair bl"></span>
+  <span class="crosshair br"></span>
+
+  <div class="meta"><span class="dot"></span>shuakami / hush</div>
+  <div class="version">v0.1</div>
+
+  <div class="center">
+    <div class="wordmark">hush<span class="stop">.</span></div>
+    <div class="tagline">Credentials, <span class="em">brokered</span>. For humans, scripts, and AI agents.</div>
+  </div>
+</body>
+</html>
