@@ -1,0 +1,71 @@
+{
+  "data": {
+    "groups": [
+      {
+        "id": "callers",
+        "label": "callers",
+        "caption": "humans, scripts, agents",
+        "services": [
+          { "id": "human",  "label": "operator",       "caption": "hush ssh / hush exec" },
+          { "id": "py",     "label": "python script",  "caption": "import hush.paramiko_compat" },
+          { "id": "ci",     "label": "ci job",         "caption": "GitHub Actions, Jenkins" },
+          { "id": "agent",  "label": "ai agent",       "caption": "Claude / Devin / Codex CLI" }
+        ]
+      },
+      {
+        "id": "broker",
+        "label": "hush broker",
+        "caption": "single binary",
+        "services": [
+          { "id": "api",    "label": "http api",       "caption": "chi · bearer auth · scopes", "accent": true },
+          { "id": "engine", "label": "exec engine",    "caption": "single + parallel" }
+        ]
+      },
+      {
+        "id": "state",
+        "label": "state",
+        "caption": "encrypted at rest",
+        "services": [
+          { "id": "vault", "label": "vault",      "caption": "AES-256-GCM + envelope" },
+          { "id": "inv",   "label": "inventory",  "caption": "named hosts · transports · tags" },
+          { "id": "audit", "label": "audit log",  "caption": "append-only · hash-chained" }
+        ]
+      },
+      {
+        "id": "transport",
+        "label": "transport",
+        "caption": "pluggable",
+        "services": [
+          { "id": "ssh",   "label": "ssh",          "caption": "password · key · jump-chain" },
+          { "id": "relay", "label": "sdjz-relay",   "caption": "curl-based tunnel" }
+        ]
+      },
+      {
+        "id": "targets",
+        "label": "targets",
+        "caption": "your hosts",
+        "services": [
+          { "id": "host",  "label": "production",  "caption": "linux / windows" }
+        ]
+      }
+    ],
+    "connections": [
+      { "from": "human",  "to": "api" },
+      { "from": "py",     "to": "api" },
+      { "from": "ci",     "to": "api" },
+      { "from": "agent",  "to": "api", "accent": true },
+
+      { "from": "api",    "to": "engine" },
+
+      { "from": "engine", "to": "vault" },
+      { "from": "engine", "to": "inv" },
+      { "from": "engine", "to": "audit",  "dashed": true },
+
+      { "from": "engine", "to": "ssh" },
+      { "from": "engine", "to": "relay" },
+
+      { "from": "ssh",    "to": "host" },
+      { "from": "relay",  "to": "host" }
+    ]
+  }
+}

@@ -3,16 +3,11 @@
 </p>
 
 <p align="center">
-  <strong>A zero-trust credential & access broker for humans, scripts, and AI agents.</strong><br>
-  <sub>One binary. No raw passwords leaving the vault. Drop-in for paramiko.</sub>
-</p>
-
-<p align="center">
   <a href="https://github.com/shuakami/hush/actions/workflows/ci.yml"><img src="https://github.com/shuakami/hush/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/shuakami/hush/releases/latest"><img src="https://img.shields.io/github/v/release/shuakami/hush?label=release&color=7c3aed&style=flat" alt="Release"></a>
-  <a href="https://github.com/shuakami/hush/blob/main/LICENSE"><img src="https://img.shields.io/github/license/shuakami/hush?color=7c3aed&style=flat" alt="License"></a>
+  <a href="https://github.com/shuakami/hush/releases/latest"><img src="https://img.shields.io/github/v/release/shuakami/hush?label=release&style=flat&color=111111" alt="Release"></a>
+  <a href="https://github.com/shuakami/hush/blob/main/LICENSE"><img src="https://img.shields.io/github/license/shuakami/hush?style=flat&color=111111" alt="License"></a>
   <a href="https://goreportcard.com/report/github.com/shuakami/hush"><img src="https://goreportcard.com/badge/github.com/shuakami/hush" alt="Go Report"></a>
-  <a href="https://github.com/shuakami/hush/stargazers"><img src="https://img.shields.io/github/stars/shuakami/hush?color=7c3aed&style=flat" alt="Stars"></a>
+  <a href="https://github.com/shuakami/hush/stargazers"><img src="https://img.shields.io/github/stars/shuakami/hush?style=flat&color=111111" alt="Stars"></a>
 </p>
 
 <p align="center">
@@ -26,24 +21,24 @@
 
 ---
 
-Stop pasting root passwords into your scripts.
+Hush is a credential broker. It stores secrets in an encrypted vault and runs commands on remote hosts on the caller's behalf, so Python scripts, CI jobs, AI agents, and humans on the CLI never need to handle raw passwords or keys themselves.
 
-Hush is a single binary that holds your credentials in an encrypted vault and **executes commands on your behalf** — Python scripts, CI jobs, and AI agents call Hush, Hush logs in, runs the work, and returns the result. The raw password never reaches the caller.
+It ships as a single Go binary with no external dependencies. Existing `paramiko`-based scripts can adopt Hush by changing one import; the CLI is shaped after `ssh` and `scp` so muscle memory carries over. Every read, exec, put, and get is appended to a hash-chained audit log that `hush audit verify` can validate end-to-end.
 
 ```python
-# Before — plaintext password lives in your repo, forever
+# before
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect("hk1.example.com", port=22, username="root",
             password="super-secret-root-password")
 
-# After — credential lives in Hush vault, paramiko shim retrieves on connect
+# after
 import hush.paramiko_compat as paramiko
 ssh = paramiko.SSHClient()
 ssh.connect("hk1")
 ```
 
-That's the entire migration. 64 paramiko call sites become one import change.
+The credential lives in the vault; the shim resolves the host name to a transport + auth pair at `connect` time. No other call-site changes are required.
 
 ---
 
@@ -109,28 +104,18 @@ hush audit verify
 
 ## How it works
 
-```
-                ┌──────────────┐
-   you / agent ─▶  hush CLI    ──── HTTP + token ────┐
-                └──────────────┘                     ▼
-                                          ┌──────────────────┐
-                                          │   hush server    │
-                                          │ ┌──────────────┐ │
-                                          │ │ vault (AES)  │ │
-                                          │ │ inventory    │ │
-                                          │ │ audit chain  │ │
-                                          │ └──────────────┘ │
-                                          └────────┬─────────┘
-                                                   │ SSH (password / key
-                                                   │ / jump-chain / sdjz-relay)
-                                                   ▼
-                                              target hosts
-```
+<p align="center">
+  <img src="./.github/assets/architecture.png" alt="Hush architecture" width="100%">
+</p>
 
-- **Vault** — AES-256-GCM with envelope encryption (per-secret DEK wrapped by KEK). KEK source is pluggable: env, file, or KMS (roadmap).
-- **Broker** — agents call `exec(host, cmd)` and get back stdout, stderr, exit code. The raw credential is never returned to the caller.
-- **Audit** — every read, exec, put, get is appended to a hash-chained log. `hush audit verify` walks the chain and detects any mutation.
-- **Transports** — SSH password, SSH key, SSH with jump host, and `sdjz-relay` (curl-based temporary tunnels) — same `hush exec hk1 …` interface for all four.
+Callers (operators, Python scripts, CI jobs, AI agents) talk to a single HTTP API on the broker. The exec engine resolves the named host through the inventory, fetches the credential from the vault, dispatches through the matching transport, and appends the result to the audit chain.
+
+- **Vault** — AES-256-GCM with envelope encryption. Each secret has its own DEK, wrapped by a KEK sourced from env, file, or KMS (roadmap).
+- **Inventory** — maps a name (`hk1`) to a transport, an auth method, and a set of tags. The same name resolves the same way for every caller.
+- **Audit** — append-only, hash-chained log. `hush audit verify` walks the chain and refuses to validate if any record has been mutated.
+- **Transports** — SSH password, SSH key, SSH through one or more jump hosts, and `sdjz-relay` (a curl-based temporary tunnel format). The caller never picks the transport; the inventory does.
+
+The diagram above is generated with [paperchart](https://github.com/shuakami/paperchart); see [`.github/assets/architecture.json`](./.github/assets/architecture.json) for the source.
 
 ## Why Hush
 
