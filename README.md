@@ -12,11 +12,11 @@
 
 <p align="center">
   <a href="#install">Install</a> ·
-  <a href="#quickstart">Quickstart</a> ·
+  <a href="#getting-started">Getting started</a> ·
   <a href="#how-it-works">How it works</a> ·
-  <a href="#why-hush">Why</a> ·
   <a href="#cli-reference">CLI</a> ·
-  <a href="#python-sdk">SDK</a>
+  <a href="#python-sdk">SDK</a> ·
+  <a href="./skills/hush/SKILL.md">Agent skill</a>
 </p>
 
 Hush is a credential broker. It stores secrets in an encrypted vault and runs commands on remote hosts on the caller's behalf, so Python scripts, CI jobs, AI agents, and humans on the CLI never need to handle raw passwords or keys themselves.
@@ -70,33 +70,96 @@ docker run --rm -p 7777:7777 -v hush-data:/data ghcr.io/shuakami/hush:latest
 pip install git+https://github.com/shuakami/hush.git#subdirectory=sdk/python
 ```
 
-## Quickstart
+## Getting started
+
+The first run takes about five minutes: pick a master key, start the broker, log the CLI in, register a host, run a command. After that, everything is `hush exec`, `hush cp`, or one import line in your Python.
+
+### 1. Pick a master key
+
+Hush encrypts the vault with a key-encryption-key (KEK) that **never** lives in the database. By default the KEK comes from the environment variable `HUSH_MASTER_KEY`. Generate one and put it somewhere your shell will read on every login (`~/.zshrc`, `/etc/hush/env`, your secret manager, your `docker run -e`, …).
 
 ```bash
-# 1. Initialize — generates KEK + admin token, prints the token to stdout
-hush bootstrap
+export HUSH_MASTER_KEY=$(openssl rand -base64 32)
+```
 
-# 2. Save a credential
+If you prefer a file on disk, set `HUSH_KEK_KIND=file` and `HUSH_KEK_FILE=/etc/hush/master.key` instead. Lose this value and the vault becomes unreadable; back it up the same way you back up an SSH private key.
+
+### 2. Start the broker
+
+```bash
+hush bootstrap        # one-shot: creates ~/.hush/data/, mints an admin API key, prints it
+hush server           # daemonise this (systemd, docker, tmux — your call)
+```
+
+`bootstrap` prints something like `hk_live_b9f2…` on stdout. Copy it now; the plaintext is shown exactly once. The broker listens on `127.0.0.1:8443` by default; expose it elsewhere with `HUSH_LISTEN`.
+
+### 3. Log the CLI in
+
+```bash
+hush login --endpoint http://127.0.0.1:8443 --api-key hk_live_b9f2…
+```
+
+This writes `~/.hush/config` (mode `0600`). Subsequent commands read it automatically. To use Hush from a different machine, copy that file across or set `HUSH_ENDPOINT` / `HUSH_API_KEY` in the environment.
+
+### 4. Register a host
+
+```bash
 echo 'super-secret-root-password' | hush secret set hk1-root-password --stdin
 
-# 3. Register a host
 hush host add hk1 \
   --transport ssh \
   --address 10.0.0.10 --port 22 --user root \
   --auth-kind password --auth-secret hk1-root-password \
   --tag prod
-
-# 4. Run something — credential never appears anywhere
-hush exec hk1 -- "systemctl status nginx"
-hush cp ./build.tar.gz hk1:/opt/app/
-hush ssh hk1                                      # interactive PTY
-
-# 5. Run on every "prod" host in parallel
-hush exec --tag prod -- "uptime"
-
-# 6. Verify the audit chain hasn't been tampered with
-hush audit verify
 ```
+
+`hk1` is now a name. The address, the port, and the credential pointer live in the inventory; the credential value lives in the vault. Anyone with an API key that has `host:exec` scope can reach `hk1` by name without ever seeing the password.
+
+For a key-based host swap `--auth-kind password --auth-secret …` for `--auth-kind key --auth-secret hk2-private-key`, where `hk2-private-key` is a vault secret containing the PEM blob.
+
+### 5. Use it
+
+```bash
+hush exec hk1 -- "systemctl status nginx"           # one host, one command
+hush exec --tag prod -- "uptime"                    # every prod host, in parallel
+hush cp ./build.tar.gz hk1:/opt/app/build.tar.gz    # upload
+hush ssh hk1                                        # interactive shell, for humans
+hush audit verify                                   # confirm the audit chain is intact
+```
+
+That is the entire daily-driver loop.
+
+### 6. Wire it into a Python script
+
+Pick the form that fits the script:
+
+```python
+# minimal change to existing paramiko code
+import hush.paramiko_compat as paramiko
+ssh = paramiko.SSHClient()
+ssh.connect("hk1")
+stdin, stdout, stderr = ssh.exec_command("systemctl status nginx")
+```
+
+```python
+# or use the higher-level helper
+from hush import remote
+result = remote.exec("hk1", "systemctl status nginx")
+print(result.exit_code, result.stdout)
+```
+
+The SDK reads the same `~/.hush/config` the CLI does, so once `hush login` succeeds the script needs no further configuration.
+
+### 7. Wire it into an AI agent
+
+The repo ships with an [Agent Skill](./skills/hush/SKILL.md) — a single directory the agent's runtime can load to learn when and how to call Hush. For Claude Code:
+
+```bash
+mkdir -p .claude/skills
+cp -r skills/hush .claude/skills/hush
+```
+
+Other runtimes that support the open Agent Skill standard (Claude Desktop, Cursor, Aider, Devin via `AGENTS.md`) load the same file. Once installed, the agent will reach for `hush exec` instead of asking the user for SSH credentials.
 
 ## How it works
 
