@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>hush — credentials, brokered</title>
+  <meta name="description" content="A single Go binary that holds credentials in an encrypted vault and runs commands on remote hosts on the caller's behalf. Python scripts, CI jobs, and AI agents call hush; the raw password never reaches the caller.">
+
+  <meta property="og:title" content="hush — credentials, brokered">
+  <meta property="og:description" content="A single Go binary that holds credentials and runs commands on remote hosts on the caller's behalf. Python, CI, and AI agents call hush; the raw password never reaches the caller.">
+  <meta property="og:image" content="./assets/og.png">
+  <meta property="og:url" content="https://shuakami.github.io/hush/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="./" aria-label="hush home">
+        <span class="brand-mark">hush<span class="brand-stop">.</span></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#install">Install</a>
+        <a href="#start">Start</a>
+        <a href="#how">How it works</a>
+        <a href="#agents">Agents</a>
+      </nav>
+      <a class="nav-gh" href="https://github.com/shuakami/hush" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.36-3.87-1.36-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.27-5.24-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.45.11-3.02 0 0 .96-.31 3.15 1.17.91-.25 1.89-.38 2.86-.39.97.01 1.95.14 2.86.39 2.18-1.48 3.14-1.17 3.14-1.17.62 1.57.23 2.73.11 3.02.74.8 1.18 1.82 1.18 3.07 0 4.4-2.69 5.36-5.25 5.65.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56 4.56-1.52 7.85-5.83 7.85-10.91C23.5 5.65 18.35.5 12 .5z"/></svg>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ─── HERO ──────────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-light" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <a class="pill" href="https://github.com/shuakami/hush/releases/tag/v0.1.0" target="_blank" rel="noopener">
+            <span class="pill-tag">v0.1</span>
+            <span class="pill-text">single binary, MIT licensed</span>
+            <span class="pill-arrow">→</span>
+          </a>
+          <h1 class="display">Credentials,<br><em class="serif-em">brokered</em>.</h1>
+          <p class="lede">
+            Hush is a credential broker. It stores secrets in an encrypted vault and runs commands on remote hosts on the caller's behalf — so Python scripts, CI jobs, and AI agents never handle a raw password or key themselves.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="#install">Install</a>
+            <a class="btn btn-ghost" href="https://github.com/shuakami/hush" target="_blank" rel="noopener">
+              Source <span class="arrow">↗</span>
+            </a>
+          </div>
+
+          <div class="hero-install">
+            <div class="hero-install-tabs" role="tablist">
+              <button class="ht-tab is-active" role="tab" aria-selected="true" data-tab="unix">macOS · Linux</button>
+              <button class="ht-tab" role="tab" aria-selected="false" data-tab="win">Windows</button>
+              <button class="ht-tab" role="tab" aria-selected="false" data-tab="go">Go</button>
+              <button class="ht-tab" role="tab" aria-selected="false" data-tab="docker">Docker</button>
+            </div>
+            <div class="hero-install-body" data-tab-pane="unix">
+              <span class="ht-prompt">$</span>
+              <span class="ht-cmd">curl -fsSL https://github.com/shuakami/hush/releases/latest/download/install.sh | sh</span>
+              <button class="ht-copy" aria-label="Copy install command" data-copy>copy</button>
+            </div>
+            <div class="hero-install-body" data-tab-pane="win" hidden>
+              <span class="ht-prompt">PS&gt;</span>
+              <span class="ht-cmd">iwr https://github.com/shuakami/hush/releases/latest/download/install.ps1 -useb | iex</span>
+              <button class="ht-copy" aria-label="Copy install command" data-copy>copy</button>
+            </div>
+            <div class="hero-install-body" data-tab-pane="go" hidden>
+              <span class="ht-prompt">$</span>
+              <span class="ht-cmd">go install github.com/shuakami/hush/cmd/hush@latest</span>
+              <button class="ht-copy" aria-label="Copy install command" data-copy>copy</button>
+            </div>
+            <div class="hero-install-body" data-tab-pane="docker" hidden>
+              <span class="ht-prompt">$</span>
+              <span class="ht-cmd">docker run --rm -p 7777:7777 -v hush-data:/data ghcr.io/shuakami/hush:latest</span>
+              <button class="ht-copy" aria-label="Copy install command" data-copy>copy</button>
+            </div>
+          </div>
+
+          <p class="hero-note">~50&nbsp;MB · zero runtime deps · linux · darwin · windows · amd64 · arm64</p>
+        </div>
+
+        <!-- right pane: split-view of what each side sees -->
+        <aside class="hero-vis" aria-label="Wire format diagram">
+          <div class="vis-card">
+            <header class="vis-head">
+              <span class="vis-dot vis-dot-a"></span>
+              <span class="vis-title">caller → hush</span>
+              <span class="vis-meta">api key</span>
+            </header>
+            <pre class="vis-body"><code>POST /v1/exec
+authorization: hk_live_b9f2…
+content-type: application/json
+
+{
+  <span class="vk">"host"</span>: <span class="vs">"hk1"</span>,
+  <span class="vk">"cmd"</span>:  <span class="vs">"systemctl status nginx"</span>
+}</code></pre>
+          </div>
+
+          <div class="vis-arrow" aria-hidden="true">
+            <svg viewBox="0 0 80 24" width="80" height="24"><path d="M0 12 H72 M64 4 L72 12 L64 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+
+          <div class="vis-card vis-card-emph">
+            <header class="vis-head">
+              <span class="vis-dot vis-dot-b"></span>
+              <span class="vis-title">hush → host</span>
+              <span class="vis-meta">resolved · streamed</span>
+            </header>
+            <pre class="vis-body"><code><span class="vc">// inventory: hk1 → ssh, password, hk1-root-password</span>
+<span class="vc">// vault:     hk1-root-password → ████████████</span>
+<span class="vc">// transport: ssh root@10.0.0.10:22</span>
+
+stdout ─▶ <span class="vs">"● nginx.service - active (running)"</span>
+exit   ─▶ <span class="vs">0</span>
+audit  ─▶ <span class="vs">host.exec  hk1  exit=0  sha 7f3a…d901</span></code></pre>
+          </div>
+
+          <p class="vis-note">
+            <span class="vis-pill">never returned</span>
+            The plaintext credential exists only inside the broker, between the vault and the transport. The caller's code-path never touches it.
+          </p>
+        </aside>
+      </div>
+
+      <!-- trust strip -->
+      <div class="trust">
+        <span class="trust-label">surface</span>
+        <span class="trust-cmd">hush exec</span>
+        <span class="trust-sep">/</span>
+        <span class="trust-cmd">hush ssh</span>
+        <span class="trust-sep">/</span>
+        <span class="trust-cmd">hush cp</span>
+        <span class="trust-sep">/</span>
+        <span class="trust-cmd">hush audit verify</span>
+        <span class="trust-sep">/</span>
+        <span class="trust-cmd">hush.get()</span>
+        <span class="trust-sep">/</span>
+        <span class="trust-cmd">paramiko_compat</span>
+      </div>
+    </section>
+
+    <!-- ─── BEFORE / AFTER ─────────────────────────────────────────────── -->
+    <section class="band band-diff">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">migration</p>
+          <h2 class="title">One <em class="serif-em">import line</em>. Sixty&#8209;four <code>paramiko.connect</code> calls migrated.</h2>
+          <p class="sub">The shim resolves named hosts to a transport + credential pair at <code>connect()</code> time. Nothing else in the file changes — no parameters to drop, no boilerplate to delete.</p>
+        </header>
+
+        <div class="diff-deck">
+          <article class="diff-card">
+            <header class="diff-head">
+              <span class="diff-tag tag-before">before</span>
+              <span class="diff-file">scripts/ssh/ssh_hk.py</span>
+              <span class="diff-meta">14 lines · 1 secret</span>
+            </header>
+<pre class="diff-body diff-before"><code><span class="ln"> 1</span> <span class="kw">import</span> paramiko
+<span class="ln"> 2</span>
+<span class="ln"> 3</span> <span class="rm">PASSWORD = <span class="str">"super-secret-root-password"</span></span>
+<span class="ln"> 4</span>
+<span class="ln"> 5</span> ssh = paramiko.SSHClient()
+<span class="ln"> 6</span> ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+<span class="ln"> 7</span> <span class="rm">ssh.connect(</span>
+<span class="ln"> 8</span> <span class="rm">    <span class="str">"hk1.example.com"</span>,</span>
+<span class="ln"> 9</span> <span class="rm">    port=22,</span>
+<span class="ln">10</span> <span class="rm">    username=<span class="str">"root"</span>,</span>
+<span class="ln">11</span> <span class="rm">    password=PASSWORD,</span>
+<span class="ln">12</span> <span class="rm">)</span>
+<span class="ln">13</span> ssh.exec_command(<span class="str">"systemctl status nginx"</span>)</code></pre>
+          </article>
+
+          <article class="diff-card diff-card-after">
+            <header class="diff-head">
+              <span class="diff-tag tag-after">after</span>
+              <span class="diff-file">scripts/ssh/ssh_hk.py</span>
+              <span class="diff-meta">5 lines · 0 secrets</span>
+            </header>
+<pre class="diff-body diff-after"><code><span class="ln">1</span> <span class="add"><span class="kw">import</span> hush.paramiko_compat <span class="kw">as</span> paramiko</span>
+<span class="ln">2</span>
+<span class="ln">3</span> ssh = paramiko.SSHClient()
+<span class="ln">4</span> <span class="add">ssh.connect(<span class="str">"hk1"</span>)</span>
+<span class="ln">5</span> ssh.exec_command(<span class="str">"systemctl status nginx"</span>)</code></pre>
+          </article>
+        </div>
+
+        <div class="migrate-cta">
+          <span class="migrate-cmd"><span class="ml-prompt">$</span> hush migrate scan ./scripts/</span>
+          <span class="migrate-out">found 11 potential credential(s) across 10 file(s) · ready to vault</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── LANGUAGE TABS ──────────────────────────────────────────────── -->
+    <section class="band band-tabs">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">pick your wire</p>
+          <h2 class="title">Same task. <em class="serif-em">Six</em> ways to call it.</h2>
+          <p class="sub">Run <code>systemctl status nginx</code> on the host known as <code>hk1</code>. Hush ships first-class surfaces for the CLI, the Python shim, the Python SDK, the Go SDK, the HTTP API, and MCP — every caller hits the same broker, gets the same audit entry, never touches the credential.</p>
+        </header>
+
+        <div class="lang">
+          <div class="lang-tabs" role="tablist">
+            <button class="lang-tab is-active" role="tab" aria-selected="true" data-lang="bash">Bash CLI</button>
+            <button class="lang-tab" role="tab" aria-selected="false" data-lang="paramiko">Python · paramiko shim</button>
+            <button class="lang-tab" role="tab" aria-selected="false" data-lang="pysdk">Python · SDK</button>
+            <button class="lang-tab" role="tab" aria-selected="false" data-lang="go">Go SDK</button>
+            <button class="lang-tab" role="tab" aria-selected="false" data-lang="http">HTTP</button>
+            <button class="lang-tab" role="tab" aria-selected="false" data-lang="mcp">MCP</button>
+          </div>
+
+          <div class="lang-pane is-active" data-lang-pane="bash">
+<pre class="code"><code><span class="ln">1</span> <span class="cm">$</span> hush exec hk1 -- <span class="s">"systemctl status nginx"</span>
+<span class="ln">2</span> <span class="o">●</span> nginx.service - A high performance web server
+<span class="ln">3</span>      Active: <span class="ok">active (running)</span> since Mon 2026-05-04 14:02:11 UTC
+<span class="ln">4</span>    Main PID: 1284 (nginx)</code></pre>
+          </div>
+
+          <div class="lang-pane" data-lang-pane="paramiko" hidden>
+<pre class="code"><code><span class="ln">1</span> <span class="kw">import</span> hush.paramiko_compat <span class="kw">as</span> paramiko
+<span class="ln">2</span>
+<span class="ln">3</span> ssh = paramiko.SSHClient()
+<span class="ln">4</span> ssh.connect(<span class="s">"hk1"</span>)
+<span class="ln">5</span> _, stdout, _ = ssh.exec_command(<span class="s">"systemctl status nginx"</span>)
+<span class="ln">6</span> <span class="bi">print</span>(stdout.read().decode())</code></pre>
+          </div>
+
+          <div class="lang-pane" data-lang-pane="pysdk" hidden>
+<pre class="code"><code><span class="ln">1</span> <span class="kw">from</span> hush <span class="kw">import</span> remote
+<span class="ln">2</span>
+<span class="ln">3</span> result = remote.exec(<span class="s">"hk1"</span>, <span class="s">"systemctl status nginx"</span>)
+<span class="ln">4</span> <span class="bi">print</span>(result.exit_code, result.stdout)</code></pre>
+          </div>
+
+          <div class="lang-pane" data-lang-pane="go" hidden>
+<pre class="code"><code><span class="ln">1</span> <span class="kw">package</span> main
+<span class="ln">2</span>
+<span class="ln">3</span> <span class="kw">import</span> <span class="s">"github.com/shuakami/hush/sdk/go/hush"</span>
+<span class="ln">4</span>
+<span class="ln">5</span> <span class="kw">func</span> main() {
+<span class="ln">6</span>     c := hush.New()
+<span class="ln">7</span>     r, _ := c.Exec(<span class="s">"hk1"</span>, <span class="s">"systemctl status nginx"</span>)
+<span class="ln">8</span>     fmt.Println(r.ExitCode, r.Stdout)
+<span class="ln">9</span> }</code></pre>
+          </div>
+
+          <div class="lang-pane" data-lang-pane="http" hidden>
+<pre class="code"><code><span class="ln">1</span> <span class="cm">$</span> curl -X POST http://127.0.0.1:8443/v1/exec \
+<span class="ln">2</span>     -H <span class="s">"authorization: hk_live_b9f2…"</span> \
+<span class="ln">3</span>     -d <span class="s">'{"host":"hk1","cmd":"systemctl status nginx"}'</span>
+<span class="ln">4</span> { <span class="k">"exit_code"</span>: <span class="n">0</span>, <span class="k">"stdout"</span>: <span class="s">"● nginx.service - active (running) ..."</span> }</code></pre>
+          </div>
+
+          <div class="lang-pane" data-lang-pane="mcp" hidden>
+<pre class="code"><code><span class="ln">1</span> <span class="cm">// .claude/mcp.json</span>
+<span class="ln">2</span> {
+<span class="ln">3</span>   <span class="k">"servers"</span>: {
+<span class="ln">4</span>     <span class="k">"hush"</span>: { <span class="k">"command"</span>: <span class="s">"hush"</span>, <span class="k">"args"</span>: [<span class="s">"mcp"</span>] }
+<span class="ln">5</span>   }
+<span class="ln">6</span> }
+<span class="ln">7</span>
+<span class="ln">8</span> <span class="cm">// the agent calls:</span>
+<span class="ln">9</span> host_exec({ host: <span class="s">"hk1"</span>, cmd: <span class="s">"systemctl status nginx"</span> })</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── HOW IT WORKS ───────────────────────────────────────────────── -->
+    <section class="band band-how" id="how">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">how it works</p>
+          <h2 class="title">One HTTP API.<br>Four <em class="serif-em">resolved</em> layers.</h2>
+          <p class="sub">Callers talk to a single broker. The exec engine resolves a named host through the inventory, fetches the credential from the vault, dispatches through the matching transport, and appends the result to the audit chain. Each layer is testable in isolation and wears a single responsibility.</p>
+        </header>
+
+        <div class="how-figure">
+          <img src="./assets/architecture.png" alt="hush architecture: callers talk to a single broker that resolves through vault · inventory · audit · api before dispatching to transports and targets" loading="lazy">
+        </div>
+
+        <div class="how-cards">
+          <article class="how-card">
+            <p class="how-eyebrow">vault</p>
+            <h3>Encrypted at rest. Streamed at use.</h3>
+            <p>AES-256-GCM with envelope encryption. Each secret has its own DEK, wrapped by a KEK sourced from env, file, or KMS. Plaintext lives in memory only between the vault read and the transport handshake.</p>
+          </article>
+          <article class="how-card">
+            <p class="how-eyebrow">inventory</p>
+            <h3>Names, not addresses.</h3>
+            <p><code>hk1</code> is a name. Behind it: password SSH, key SSH, jump-host chain, or a curl-based relay tunnel — same call site. Tagged hosts make <code>hush exec --tag prod -- uptime</code> a one-liner.</p>
+          </article>
+          <article class="how-card">
+            <p class="how-eyebrow">audit</p>
+            <h3>Hash-chained. Verifiable.</h3>
+            <p>Every read, exec, put, and get is appended to a hash-chained log. <code>hush audit verify</code> walks the chain and refuses to validate if any record has been mutated. Same primitive Sigstore Rekor uses for supply-chain proofs.</p>
+          </article>
+          <article class="how-card">
+            <p class="how-eyebrow">api</p>
+            <h3>Scoped tokens. Streaming responses.</h3>
+            <p>Bearer tokens are scoped per resource (<code>secret:read</code>, <code>host:exec</code>, …). Output is streamed, not buffered — large jobs don't bloat the broker's memory.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── AUDIT FEED ─────────────────────────────────────────────────── -->
+    <section class="band band-audit">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">audit</p>
+          <h2 class="title">Every call leaves a <em class="serif-em">verifiable</em> trace.</h2>
+          <p class="sub">Hush records the actor, the action, the resolved target, and the outcome — then commits the SHA-256 of the previous record into the next. Tampering breaks the chain. Operators trust agents because the agents leave a complete trail.</p>
+        </header>
+
+        <div class="audit">
+          <div class="audit-frame">
+            <div class="audit-bar">
+              <span class="audit-bar-dot"></span>
+              <span>hush audit tail --follow</span>
+              <span class="audit-meta">live · sha256 head <strong>7f3a…d901</strong></span>
+            </div>
+            <pre class="audit-body" id="audit-feed"></pre>
+          </div>
+          <ul class="audit-meta-grid">
+            <li><span class="amg-key">scheme</span><span class="amg-val">sha256(prev || record)</span></li>
+            <li><span class="amg-key">verify</span><span class="amg-val">O(n) walk · ~150k entries / sec on a laptop</span></li>
+            <li><span class="amg-key">export</span><span class="amg-val">signed JSONL · drop into your SIEM</span></li>
+            <li><span class="amg-key">retention</span><span class="amg-val">append-only sqlite or postgres (roadmap)</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── INSTALL ─────────────────────────────────────────────────────── -->
+    <section class="band band-install" id="install">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">install</p>
+          <h2 class="title">Pick a flavour. <em class="serif-em">Same</em> binary underneath.</h2>
+        </header>
+
+        <div class="install-grid">
+          <article class="ig-card">
+            <header class="ig-head">
+              <span class="ig-platform">macOS · Linux</span>
+              <span class="ig-pill">curl</span>
+            </header>
+<pre class="ig-body"><code>curl -fsSL https://github.com/shuakami/hush/releases/latest/download/install.sh \
+  | sh</code></pre>
+          </article>
+
+          <article class="ig-card">
+            <header class="ig-head">
+              <span class="ig-platform">Windows</span>
+              <span class="ig-pill">PowerShell</span>
+            </header>
+<pre class="ig-body"><code>iwr https://github.com/shuakami/hush/releases/latest/download/install.ps1 -useb \
+  | iex</code></pre>
+          </article>
+
+          <article class="ig-card">
+            <header class="ig-head">
+              <span class="ig-platform">Go</span>
+              <span class="ig-pill">go install</span>
+            </header>
+<pre class="ig-body"><code>go install github.com/shuakami/hush/cmd/hush@latest</code></pre>
+          </article>
+
+          <article class="ig-card">
+            <header class="ig-head">
+              <span class="ig-platform">Docker</span>
+              <span class="ig-pill">ghcr.io</span>
+            </header>
+<pre class="ig-body"><code>docker run --rm -p 7777:7777 \
+  -v hush-data:/data \
+  ghcr.io/shuakami/hush:latest</code></pre>
+          </article>
+
+          <article class="ig-card ig-card-wide">
+            <header class="ig-head">
+              <span class="ig-platform">Python SDK</span>
+              <span class="ig-pill">pip</span>
+            </header>
+<pre class="ig-body"><code>pip install git+https://github.com/shuakami/hush.git#subdirectory=sdk/python</code></pre>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── GETTING STARTED ─────────────────────────────────────────────── -->
+    <section class="band band-start" id="start">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">getting started</p>
+          <h2 class="title">Five minutes, <em class="serif-em">end</em> to end.</h2>
+        </header>
+
+        <ol class="steps">
+          <li class="step">
+            <p class="step-num">01</p>
+            <div class="step-body">
+              <h3>Pick a master key</h3>
+              <p>Hush encrypts the vault with a key-encryption-key (KEK) that <em>never</em> lives in the database.</p>
+<pre class="code-block"><code><span class="cm">$</span> export HUSH_MASTER_KEY=$(openssl rand -base64 32)</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <p class="step-num">02</p>
+            <div class="step-body">
+              <h3>Start the broker</h3>
+              <p>One process, one port. Daemonise with systemd, docker, or tmux — your call.</p>
+<pre class="code-block"><code><span class="cm">$</span> hush bootstrap        <span class="cmt"># mints admin token (printed once)</span>
+<span class="cm">$</span> hush server           <span class="cmt"># listens on 127.0.0.1:8443</span></code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <p class="step-num">03</p>
+            <div class="step-body">
+              <h3>Log the CLI in</h3>
+              <p>Writes <code>~/.hush/config</code> at mode <code>0600</code>. Every later command reads it automatically.</p>
+<pre class="code-block"><code><span class="cm">$</span> hush login --endpoint http://127.0.0.1:8443 --api-key hk_live_…</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <p class="step-num">04</p>
+            <div class="step-body">
+              <h3>Register a host</h3>
+              <p>Push the credential into the vault, then attach it to a name in the inventory.</p>
+<pre class="code-block"><code><span class="cm">$</span> echo 'super-secret-root-password' | hush secret set hk1-root-password --stdin
+<span class="cm">$</span> hush host add hk1 \
+    --transport ssh --address 10.0.0.10 --port 22 --user root \
+    --auth-kind password --auth-secret hk1-root-password --tag prod</code></pre>
+            </div>
+          </li>
+          <li class="step">
+            <p class="step-num">05</p>
+            <div class="step-body">
+              <h3>Use it</h3>
+              <p>The entire daily-driver loop.</p>
+<pre class="code-block"><code><span class="cm">$</span> hush exec hk1 -- "systemctl status nginx"
+<span class="cm">$</span> hush exec --tag prod -- "uptime"
+<span class="cm">$</span> hush cp ./build.tar.gz hk1:/opt/app/build.tar.gz
+<span class="cm">$</span> hush ssh hk1
+<span class="cm">$</span> hush audit verify</code></pre>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ─── AGENTS ─────────────────────────────────────────────────────── -->
+    <section class="band band-agents" id="agents">
+      <div class="container">
+        <header class="band-head">
+          <p class="kicker">for AI agents</p>
+          <h2 class="title">A skill, a CLI, a <em class="serif-em">scoped</em> token.</h2>
+          <p class="sub">Modern coding agents speak bash; Hush is shaped for that. The repo also ships an <a class="link" href="https://github.com/shuakami/hush/blob/main/skills/hush/SKILL.md">Agent Skill</a> for runtimes that load skill directories — Claude Code, Claude Desktop, Cursor, Aider, Devin via <code>AGENTS.md</code>.</p>
+        </header>
+
+        <div class="agent-grid">
+          <article class="agent-card">
+            <header class="ac-head"><span class="ac-num">01</span><span class="ac-title">Install the skill</span></header>
+<pre class="code-block"><code><span class="cm">$</span> mkdir -p .claude/skills
+<span class="cm">$</span> cp -r skills/hush .claude/skills/hush</code></pre>
+            <p>The skill describes <em>when</em> to call Hush, the verbs, common patterns, and the boundaries — for example, never echoing the plaintext of a vault entry.</p>
+          </article>
+
+          <article class="agent-card">
+            <header class="ac-head"><span class="ac-num">02</span><span class="ac-title">Mint a scoped token</span></header>
+<pre class="code-block"><code><span class="cm">$</span> hush apikey mint \
+    --name claude-code \
+    --scope host:exec,host:list,secret:read</code></pre>
+            <p>API keys are scoped: <code>secret:read</code>, <code>host:exec</code>, <code>host:put</code>, <code>audit:read</code>, … Mint one per agent, revoke when done.</p>
+          </article>
+
+          <article class="agent-card">
+            <header class="ac-head"><span class="ac-num">03</span><span class="ac-title">Watch the trail</span></header>
+<pre class="code-block"><code><span class="cm">$</span> hush audit tail --follow
+host.exec    hk1   exit=0   <span class="cmt">"systemctl status nginx"</span>
+secret.read  hk1-root-password   caller=claude-code</code></pre>
+            <p>Every read, exec, put, and get is appended to the chain. Operators trust agents because the agents leave a complete trail.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CTA ─────────────────────────────────────────────────────────── -->
+    <section class="cta">
+      <div class="container cta-inner">
+        <h2 class="cta-title">Ready to evict the <em class="serif-em">hardcoded</em> passwords?</h2>
+        <p class="cta-sub">Single binary, MIT licensed, ~50&nbsp;MB. Built for ops engineers who keep finding root passwords in Python files.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://github.com/shuakami/hush" target="_blank" rel="noopener">Star on GitHub</a>
+          <a class="btn btn-ghost" href="#install">Install <span class="arrow">→</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <span class="brand-mark sm">hush<span class="brand-stop">.</span></span>
+          <p>Credentials, brokered.<br>For humans, scripts, and AI agents.</p>
+        </div>
+        <div class="footer-cols">
+          <div class="footer-col">
+            <p class="footer-head">project</p>
+            <a href="https://github.com/shuakami/hush" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/shuakami/hush/releases">Releases</a>
+            <a href="https://github.com/shuakami/hush/blob/main/LICENSE">License</a>
+          </div>
+          <div class="footer-col">
+            <p class="footer-head">docs</p>
+            <a href="#install">Install</a>
+            <a href="#start">Getting started</a>
+            <a href="#how">How it works</a>
+          </div>
+          <div class="footer-col">
+            <p class="footer-head">agents</p>
+            <a href="https://github.com/shuakami/hush/blob/main/skills/hush/SKILL.md">Agent skill</a>
+            <a href="https://github.com/shuakami/hush/blob/main/AGENTS.md">AGENTS.md</a>
+          </div>
+        </div>
+      </div>
+      <p class="footer-fine">© <span id="year">2026</span> shuakami · MIT · no telemetry, no analytics, no fonts hosted by us.</p>
+    </div>
+  </footer>
+
+  <script src="./script.js" defer></script>
+</body>
+</html>
