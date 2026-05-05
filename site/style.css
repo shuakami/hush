@@ -214,11 +214,6 @@ figure img {
   height: auto;
   display: block;
   margin: 0 auto;
-  border: 1px solid var(--line-soft);
-  border-radius: 4px;
-  /* paperchart renders on a light canvas — flip lightness while preserving hue */
-  filter: invert(0.92) hue-rotate(180deg) saturate(0.5);
-  background: #0e0e0e;
 }
 
 /* ─── footer ─────────────────────────────────────────────────── */
