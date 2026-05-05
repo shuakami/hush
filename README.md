@@ -111,8 +111,6 @@ Callers (operators, Python scripts, CI jobs, AI agents) talk to a single HTTP AP
 - **Audit** — append-only, hash-chained log. `hush audit verify` walks the chain and refuses to validate if any record has been mutated.
 - **Transports** — SSH password, SSH key, SSH through one or more jump hosts, and `sdjz-relay` (a curl-based temporary tunnel format). The caller never picks the transport; the inventory does.
 
-The diagram above is generated with [paperchart](https://github.com/shuakami/paperchart); see [`.github/assets/architecture.json`](./.github/assets/architecture.json) for the source.
-
 ## Why Hush
 
 Existing tools each cover part of the problem:
