@@ -93,7 +93,7 @@ hush server           # daemonise this (systemd, docker, tmux — your call)
 
 `bootstrap` mints an admin API key and writes both the local endpoint (`http://127.0.0.1:8443`) and the key into `~/.hush/config` at mode `0600`. The CLI on this machine is now ready — there is no separate "log in" step, and no cloud account anywhere.
 
-To bootstrap a server whose CLI lives on a different machine, pass `--no-save`; the key is printed to stdout and you can copy it across with `hush login --endpoint … --api-key …`. If `hush server` starts on a fresh data directory and finds no API keys, it self-bootstraps with the same logic, prints the key on stderr, and writes the config.
+To bootstrap a server whose CLI lives on a different machine, pass `--no-save`; the key is printed to stdout and you can copy it across with `hush login --endpoint … --api-key …`. If `hush server` starts on a fresh data directory and finds no API keys, it self-bootstraps with the same config-writing logic. When local config save succeeds, it does not print the raw key.
 
 ### 3. Register a host
 

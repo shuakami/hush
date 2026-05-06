@@ -44,7 +44,7 @@ jobs:
           export HUSH_KEK_FILE=$RUNNER_TEMP/kek
           export HUSH_LISTEN=127.0.0.1:18443
           mkdir -p "$HUSH_DATA_DIR"
-          TOKEN=$(/tmp/hush bootstrap)
+          TOKEN=$(/tmp/hush bootstrap --no-save)
           echo "minted token: ${TOKEN:0:10}..."
 
           /tmp/hush server &
