@@ -14,10 +14,19 @@ func newCPCmd() *cobra.Command {
 		Use:   "cp SRC DST",
 		Short: "Copy a file to/from a host (drop-in for `scp local host:/path`)",
 		Long: `cp uses the host:/remote prefix exactly like scp. One side must be a host
-reference, the other side must be a local path.
+reference, and the other side must be a local path. Host-to-host copies are not
+supported in v0.1.
 
-  hush cp ./worker hk1:/opt/uapipro/worker
-  hush cp hk1:/var/log/proxy.log ./local.log`,
+Run "hush doctor --host NAME" before using cp against a newly registered host.
+On Windows, local paths like C:\Users\me\build.zip are treated as local paths,
+not as HOST:/path references.
+
+  hush cp ./worker NAME:/opt/app/worker
+  hush cp NAME:/var/log/app.log ./local.log`,
+		Example: `  hush cp ./build.tar.gz NAME:/opt/app/build.tar.gz
+  hush cp --mode 0755 ./worker NAME:/opt/app/worker
+  hush cp NAME:/var/log/app.log ./app.log
+  hush cp C:\Users\me\build.tar.gz NAME:/opt/app/build.tar.gz`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			srcHost, srcPath := splitHostPath(args[0])

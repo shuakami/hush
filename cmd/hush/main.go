@@ -21,9 +21,22 @@ var Version = "0.1.0-dev"
 
 func main() {
 	root := &cobra.Command{
-		Use:           "hush",
-		Short:         "Zero-trust credential & access broker",
-		Long:          "Hush — credential vault + named hosts + multi-transport exec broker for AI agents and humans.",
+		Use:   "hush",
+		Short: "Zero-trust credential & access broker",
+		Long: `Hush is a credential vault + named hosts + multi-transport exec broker.
+
+First local setup:
+  hush bootstrap
+  hush server
+  hush doctor
+
+Daily workflow:
+  hush host ls
+  hush doctor --host NAME
+  hush exec NAME -- "hostname && whoami"
+
+Host records reference vault secret names. Avoid printing raw secret values;
+use hush secret set --stdin or --from-file when storing credentials.`,
 		SilenceUsage:  true,
 		SilenceErrors: false,
 		Version:       Version,

@@ -22,6 +22,18 @@ func newDoctorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "doctor",
 		Short: "Check local config, server health, auth, inventory, and optional host connectivity",
+		Long: `doctor is the first command to run when Hush does not behave as expected.
+
+Without flags it checks the client config, server /healthz endpoint, API auth,
+and inventory access. With --host it also verifies that the host record exists
+and can execute a minimal remote "true" command.
+
+doctor prints endpoint and inventory counts, but never prints API keys or vault
+secret values. Fix the first failing row before running deploy, restart, or
+other write commands.`,
+		Example: `  hush doctor
+  hush doctor --host NAME
+  hush doctor --host NAME --timeout 20s`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if timeout <= 0 {
 				timeout = 10 * time.Second

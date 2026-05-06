@@ -22,15 +22,20 @@ func newExecCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "exec [HOST] -- COMMAND...",
 		Short: "Run a command on a host (or every host with a tag)",
-		Long: `exec runs COMMAND on the named host. With --tag, runs in parallel
+		Long: `exec runs COMMAND on the named host. With --tag, it runs in parallel
 on every host carrying that tag.
 
 By default stdout / stderr are piped through verbatim and the local exit code
 mirrors the remote command's exit code. With --json, a structured result is
-printed instead.`,
-		Example: `  hush exec hk1 -- "systemctl status uapipro-server"
-  hush exec --tag hk -- "uname -a"
-  hush exec --tag prod --parallel 5 --json -- "df -h"`,
+printed instead.
+
+Recommended agent flow:
+  1. Run "hush doctor --host NAME".
+  2. Run a read-only smoke command such as "hostname && whoami".
+  3. Run write commands only after the user has approved that class of change.`,
+		Example: `  hush exec NAME -- "hostname && whoami && uname -a"
+  hush exec NAME -- "systemctl status app.service"
+  hush exec --tag prod --parallel 5 --json -- "df -h /"`,
 		Args: cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			host, command, err := splitExecArgs(cmd, args)
@@ -80,7 +85,7 @@ printed instead.`,
 	return cmd
 }
 
-// splitExecArgs accepts "hush exec hk1 -- ls /" and "hush exec hk1 ls /" and
+// splitExecArgs accepts "hush exec NAME -- ls /" and "hush exec NAME ls /" and
 // "hush exec --tag hk -- ls /". Cobra strips the literal `--` for us.
 func splitExecArgs(cmd *cobra.Command, args []string) (host, command string, err error) {
 	tag, _ := cmd.Flags().GetString("tag")

@@ -30,17 +30,32 @@ func newHostAddCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add NAME",
 		Short: "Register or update a host (re-runnable; same name = update)",
-		Args:  cobra.ExactArgs(1),
+		Long: `Register or update a named host.
+
+Host records store connection metadata and reference vault secret names. They
+do not store plaintext passwords, private keys, or relay tokens directly.
+
+For SSH, store the credential first with "hush secret set --stdin" or
+"hush secret set --from-file", then pass that secret name via --auth-secret.
+For sdjz-relay, pass the relay token's secret name via --relay-secret.
+
+After adding a host, run "hush doctor --host NAME" before using it for deploys
+or other write operations.`,
+		Args: cobra.ExactArgs(1),
 		Example: `  # SSH host with password from vault
-  hush host add hk1 --transport ssh --address 10.0.0.10 --port 22 --user root \
-                    --auth-kind password --auth-secret hk1-root-password --tag hk
+  printf '%s' '<password>' | hush secret set NAME-root-password --stdin
+  hush host add NAME --transport ssh --address 10.0.0.10 --port 22 --user root \
+                     --auth-kind password --auth-secret NAME-root-password --tag prod
 
   # SSH through a jump host
-  hush host add panel --transport ssh --address 10.0.0.20 --user root \
-                      --auth-kind key --auth-secret panel-key --jump-via hk1
+  hush host add NAME --transport ssh --address 10.0.0.20 --user root \
+                     --auth-kind key --auth-secret NAME-key --jump-via JUMP_NAME
 
-  # ssh.sdjz.wiki/c/<TOKEN> relay (for NAT'd machines)
-  hush host add nmg-mac --transport sdjz-relay --relay-secret nmg-mac-relay-token --tag nmg`,
+  # Relay transport for NAT'd machines
+  hush host add RELAY_NAME --transport sdjz-relay --relay-secret RELAY_NAME-relay-token --tag edge
+
+  # Validate after registration
+  hush doctor --host NAME`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := dial(true)
 			if err != nil {
@@ -81,7 +96,7 @@ func newHostAddCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&transport, "transport", "ssh", "transport: ssh | sdjz-relay")
-	cmd.Flags().StringVar(&address, "address", "", "ssh: host address")
+	cmd.Flags().StringVar(&address, "address", "", "ssh: host address (hostname or IP)")
 	cmd.Flags().StringVar(&port, "port", "22", "ssh: port")
 	cmd.Flags().StringVar(&sshUser, "user", "root", "ssh: username")
 	cmd.Flags().StringVar(&osType, "os", "linux", "target OS: linux | windows")

@@ -30,8 +30,15 @@ func newGetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get NAME",
 		Short: "Print a secret to stdout (alias of `hush secret get`)",
-		Args:  cobra.ExactArgs(1),
-		RunE:  runSecretGet,
+		Long: `Print one secret value to stdout without a trailing newline.
+
+Use this only when the value is piped directly into another process. Do not
+echo, log, paste, or include the result in chat or commit messages. Use
+"hush secret ls" when you only need to confirm that a secret exists.`,
+		Example: `  DB_URL=$(hush get NAME-db-url)
+  psql "$DB_URL" -c 'select 1'`,
+		Args: cobra.ExactArgs(1),
+		RunE: runSecretGet,
 	}
 }
 
@@ -39,8 +46,15 @@ func newSecretGetCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "get NAME",
 		Short: "Print a secret value to stdout (no trailing newline)",
-		Args:  cobra.ExactArgs(1),
-		RunE:  runSecretGet,
+		Long: `Print one secret value to stdout without a trailing newline.
+
+Use this only when the value is piped directly into another process. Do not
+echo, log, paste, or include the result in chat or commit messages. Use
+"hush secret ls" when you only need to confirm that a secret exists.`,
+		Example: `  DB_URL=$(hush secret get NAME-db-url)
+  psql "$DB_URL" -c 'select 1'`,
+		Args: cobra.ExactArgs(1),
+		RunE: runSecretGet,
 	}
 }
 
@@ -65,7 +79,21 @@ func newSecretSetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set NAME [--value V | --stdin | --from-file PATH]",
 		Short: "Create or rotate a secret",
-		Args:  cobra.ExactArgs(1),
+		Long: `Create or rotate one vault secret.
+
+Exactly one input source is required:
+  --stdin       best for passwords, tokens, and values provided by another tool
+  --from-file   best for private keys and certificates
+  --value       convenient for demos, but real credentials may enter shell history
+
+The command prints only the secret name and version. It never prints the stored
+value. Host records should reference the secret by name via --auth-secret or
+--relay-secret.`,
+		Example: `  printf '%s' '<password>' | hush secret set NAME-root-password --stdin
+  hush secret set NAME-ed25519 --from-file ~/.ssh/id_ed25519
+  printf '%s' '<relay-token>' | hush secret set RELAY_NAME-relay-token --stdin
+  hush secret ls`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			c, err := dial(true)
 			if err != nil {
