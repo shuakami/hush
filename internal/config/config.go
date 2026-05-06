@@ -34,7 +34,7 @@ func LoadServer() (*ServerConfig, error) {
 	cfg := &ServerConfig{
 		Listen:  envOr("HUSH_LISTEN", "127.0.0.1:8443"),
 		DataDir: envOr("HUSH_DATA_DIR", defaultDataDir()),
-		KEKKind: envOr("HUSH_KEK_KIND", "env"),
+		KEKKind: envOr("HUSH_KEK_KIND", "file"),
 		Timeout: 60 * time.Second,
 	}
 

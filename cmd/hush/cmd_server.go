@@ -125,18 +125,20 @@ func bootstrapIfNeeded(ctx context.Context, akm *apikey.Manager, alog *audit.Log
 	}
 
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "════════════════════════════════════════════════════════════════")
-	fmt.Fprintln(os.Stderr, " hush bootstrap ─ no api keys existed; minted an admin key")
-	fmt.Fprintln(os.Stderr, " save this NOW (it will not be shown again):")
 	fmt.Fprintln(os.Stderr, "")
-	fmt.Fprintln(os.Stderr, "    "+raw)
-	fmt.Fprintln(os.Stderr, "")
+	fmt.Fprintln(os.Stderr, "========================================")
+	fmt.Fprintln(os.Stderr, " hush bootstrap: no api keys existed; minted an admin key")
 	if saved {
-		fmt.Fprintln(os.Stderr, " saved client config to ~/.hush/config — `hush exec ...` works.")
+		fmt.Fprintln(os.Stderr, " saved client config to ~/.hush/config; `hush exec ...` works.")
+		fmt.Fprintln(os.Stderr, " raw api key was not printed because it was saved locally.")
 	} else {
+		fmt.Fprintln(os.Stderr, " save this NOW (it will not be shown again):")
+		fmt.Fprintln(os.Stderr, "")
+		fmt.Fprintln(os.Stderr, "    "+raw)
+		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, " on the client run (or copy the key into ~/.hush/config):")
 		fmt.Fprintln(os.Stderr, "    hush login --endpoint "+endpoint+" --api-key "+raw)
 	}
-	fmt.Fprintln(os.Stderr, "════════════════════════════════════════════════════════════════")
+	fmt.Fprintln(os.Stderr, "========================================")
 	return nil
 }

@@ -120,14 +120,20 @@ func readValue(value, fromFile string, fromStdin bool) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return strings.TrimRight(string(body), "\n"), nil
+		return normalizeSecretBody(body), nil
 	default:
 		body, err := io.ReadAll(bufio.NewReader(os.Stdin))
 		if err != nil {
 			return "", err
 		}
-		return strings.TrimRight(string(body), "\n"), nil
+		return normalizeSecretBody(body), nil
 	}
+}
+
+func normalizeSecretBody(body []byte) string {
+	v := strings.ReplaceAll(string(body), "\r\n", "\n")
+	v = strings.ReplaceAll(v, "\r", "\n")
+	return strings.TrimRight(v, "\n")
 }
 
 func newSecretLsCmd() *cobra.Command {

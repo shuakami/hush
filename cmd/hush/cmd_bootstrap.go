@@ -20,13 +20,13 @@ func newBootstrapCmd() *cobra.Command {
 		Long: `bootstrap is the one-shot first-run command.
 
 It opens (or creates) the data directory, opens the vault, mints an admin
-API key with scope ["*"], prints the raw key on stdout, and — unless
---no-save is set — writes the endpoint and the key into ~/.hush/config so
-that the CLI on this machine works immediately without a separate
-"hush login" step.
+API key with scope ["*"], and unless --no-save is set, writes the endpoint
+and the key into ~/.hush/config so that the CLI on this machine works
+immediately without a separate "hush login" step.
 
-Pass --no-save when bootstrapping a server whose CLI will run on a
-different machine; in that case copy the printed key by hand.`,
+Pass --no-save when bootstrapping a server whose CLI will run on a different
+machine; in that case the raw key is printed to stdout so it can be copied by
+hand. The default local path does not print the raw key.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.LoadServer()
 			if err != nil {
@@ -48,9 +48,8 @@ different machine; in that case copy the printed key by hand.`,
 				return err
 			}
 			_, _ = alog.Append(cmd.Context(), "bootstrap-cli", "apikey.bootstrap", k.Name, map[string]interface{}{"id": k.ID})
-			fmt.Println(raw)
-
 			if noSave {
+				fmt.Println(raw)
 				return nil
 			}
 			ccfg := &config.ClientConfig{
@@ -61,7 +60,7 @@ different machine; in that case copy the printed key by hand.`,
 				fmt.Fprintln(os.Stderr, "warning: could not save client config:", err)
 				return nil
 			}
-			fmt.Fprintf(os.Stderr, "saved client config (~/.hush/config) — endpoint = %s\n", ccfg.Endpoint)
+			fmt.Fprintf(os.Stderr, "saved client config (~/.hush/config); endpoint = %s\n", ccfg.Endpoint)
 			return nil
 		},
 	}
