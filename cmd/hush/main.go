@@ -34,6 +34,7 @@ func main() {
 		newBootstrapCmd(),
 		newLoginCmd(),
 		newWhoamiCmd(),
+		newDoctorCmd(),
 		newSecretCmd(),
 		newGetCmd(),
 		newHostCmd(),

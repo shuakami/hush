@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/shuakami/hush/internal/apikey"
 	"github.com/shuakami/hush/internal/audit"
 	"github.com/shuakami/hush/internal/inventory"
 	"github.com/shuakami/hush/internal/transport"
@@ -90,6 +91,20 @@ func (c *Client) do(ctx context.Context, method, path string, body interface{}, 
 		return nil
 	}
 	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+// Health checks the unauthenticated server health endpoint.
+func (c *Client) Health(ctx context.Context) error {
+	return c.do(ctx, "GET", "/healthz", nil, nil)
+}
+
+// Whoami returns metadata for the authenticated API key.
+func (c *Client) Whoami(ctx context.Context) (*apikey.Key, error) {
+	var out apikey.Key
+	if err := c.do(ctx, "GET", "/api/v1/auth/whoami", nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
 
 // ---- secrets ---------------------------------------------------------------

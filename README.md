@@ -117,6 +117,7 @@ For a key-based host swap `--auth-kind password --auth-secret …` for `--auth-k
 hush exec hk1 -- "systemctl status nginx"           # one host, one command
 hush exec --tag prod -- "uptime"                    # every prod host, in parallel
 hush cp ./build.tar.gz hk1:/opt/app/build.tar.gz    # upload
+hush doctor --host hk1                               # config + auth + host connectivity
 hush ssh hk1                                        # interactive shell, for humans
 hush audit verify                                   # confirm the audit chain is intact
 ```
@@ -194,6 +195,7 @@ Hush packs the useful parts into one ~50 MB binary:
 hush bootstrap                         init server (KEK + admin token)
 hush server                            run the broker daemon
 hush login                             save endpoint + token to ~/.hush
+hush doctor [--host NAME]              check config, server, auth, inventory, and host
 
 hush get NAME                          read a secret value
 hush secret  set | get | ls | rm       vault management

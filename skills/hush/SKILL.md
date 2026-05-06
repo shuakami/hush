@@ -24,6 +24,7 @@ Do **not** invent host names, passwords, or IPs. If the agent does not know whic
 ```
 hush host ls                            list every host known to the broker
 hush host show NAME                     show transport, address, auth kind, tags
+hush doctor [--host NAME]               check config, server, auth, inventory, and host
 
 hush exec  NAME -- CMD [ARGS...]        run a single command, stream output
 hush exec  --tag TAG -- CMD             run on every host carrying TAG, in parallel
@@ -96,6 +97,7 @@ The shim accepts the same `SSHClient` / `SFTPClient` API surface, so call-site c
 | `host "X" not found`                            | The name is not registered.                                  | Run `hush host ls`, ask the user.               |
 | `endpoint not set` / `api key not set`          | `~/.hush/config` is missing or `HUSH_ENDPOINT` not exported. | Run `hush bootstrap`; do not prompt for passwords. |
 | `connect: i/o timeout` / `permission denied`    | The transport is down or the credential is stale.            | Tell the user; do not retry > 3 times.          |
+| unclear local/host setup failure                 | Need one command that checks config, auth, inventory, host.  | Run `hush doctor --host NAME`.                  |
 | `audit verify: chain broken at record N`        | Audit log was mutated after the fact.                        | **Stop.** Surface to the user immediately.      |
 | `exec returned non-zero`                        | The remote command failed.                                   | Re-emit stderr to the user, propose next step.  |
 
