@@ -41,9 +41,23 @@ func dieIf(err error) {
 // not contain a colon, returns ("", input).
 func splitHostPath(s string) (host, path string) {
 	if i := strings.Index(s, ":"); i > 0 {
+		if isWindowsDrivePath(s, i) {
+			return "", s
+		}
 		return s[:i], s[i+1:]
 	}
 	return "", s
+}
+
+func isWindowsDrivePath(s string, colon int) bool {
+	if colon != 1 || len(s) < 3 {
+		return false
+	}
+	c := s[0]
+	if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+		return false
+	}
+	return s[2] == '\\' || s[2] == '/'
 }
 
 // commaList splits "a,b,c" into a slice, trimming whitespace.
